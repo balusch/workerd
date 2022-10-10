@@ -4,6 +4,8 @@
 /rust-deps/target
 /rust-deps/Cargo.toml
 
+.idea
+
 node_modules
 /npm/*/bin
 /npm/workerd/install.js
