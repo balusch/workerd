@@ -4,5 +4,8 @@
     },
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
-    "editor.tabSize": 2
+    "editor.tabSize": 2,
+    "clang-format.language.c.enable": false,
+    "clang-format.language.cpp.enable": false,
+    "clang-format.language.javascript.enable": false
 }
