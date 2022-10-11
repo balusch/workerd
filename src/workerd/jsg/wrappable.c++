@@ -35,10 +35,12 @@ v8::Local<v8::Object> Wrappable::getHandle(v8::Isolate* isolate) {
 }
 
 void Wrappable::addStrongRef() {
+  // balus(Q): 为什么检查 TryGetCurrent() != nullptr 就表示持有了 v8::Locker
   KJ_DREQUIRE(v8::Isolate::TryGetCurrent() != nullptr, "referencing wrapper without isolate lock");
   if (strongRefcount++ == 0) {
     // This object previously had no strong references, but now it has one.
     if (wrapper.IsEmpty()) {
+      // balus(T): 这里传递 *this 是 Wrappable 的子类，需要了解一下 GcVisitor/jsgVisitForGc 是干啥的
       // Since we have no JS wrapper, we're forced to recursively mark all references reachable
       // through this wrapper as strong.
       GcVisitor visitor(*this);
