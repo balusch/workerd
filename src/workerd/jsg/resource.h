@@ -1037,6 +1037,7 @@ private:
     static_assert(kj::isSameType<typename T::jsgThis, T>(),
         "Name passed to JSG_RESOURCE_TYPE() must be the class's own name.");
 
+    // balus(Q): 这也行？之前一直以为 static_cast 只能用于指针？
     auto& typeWrapper = static_cast<TypeWrapper&>(*this);
 
     ResourceTypeBuilder<TypeWrapper, T, isContext> builder(

@@ -47,6 +47,8 @@ public:
     return v8::Number::New(isolate, value);
   }
 
+  // balus(N): tryUnwrap 看着是用在类型转换的地方，比如需要一个 double，但是用户传了一个
+  // string, 这个时候就可以尝试把这个 string 转换为 number
   kj::Maybe<double> tryUnwrap(
       v8::Local<v8::Context> context, v8::Local<v8::Value> handle, double*,
       kj::Maybe<v8::Local<v8::Object>> parentObject) {
@@ -67,6 +69,10 @@ public:
     return v8::Integer::New(isolate, value);
   }
 
+  // balus(N): 对所有 size 以及是否带符号的数都做了转换(wrap/tryUnwrap)
+  // 本质上只有返回值的类型不同, 但是 C++ 中返回值类型不能作为函数重载的依据,
+  // 所以在参数列表中加上该类型
+  // balus(T): 是不是可以写一个宏来生成这些样板代码?
   kj::Maybe<int8_t> tryUnwrap(
       v8::Local<v8::Context> context, v8::Local<v8::Value> handle, int8_t*,
       kj::Maybe<v8::Local<v8::Object>> parentObject) {
@@ -210,6 +216,7 @@ public:
       return 0;
     }
 
+    // balus(T): 去了解一下 WebIDL
     // One would think that RangeError is more appropriate than TypeError,
     // but WebIDL says it should be TypeError.
     JSG_REQUIRE(value <= int(kj::maxValue) &&
@@ -592,6 +599,7 @@ public:
     KJ_IF_MAYBE(p, ptr) {
       return static_cast<TypeWrapper*>(this)->wrap(context, creator, kj::fwd<U>(*p));
     } else {
+      // balus(N): Optional 空是 undefined, Maybe 空是 null
       return v8::Null(context->GetIsolate());
     }
   }
@@ -600,6 +608,7 @@ public:
   kj::Maybe<kj::Maybe<U>> tryUnwrap(
       v8::Local<v8::Context> context, v8::Local<v8::Value> handle, kj::Maybe<U>*,
       kj::Maybe<v8::Local<v8::Object>> parentObject) {
+    // balus(Q): 为啥 undefined 也可以是 maybe 呢?
     if (handle->IsNullOrUndefined()) {
       return kj::Maybe<U>(nullptr);
     } else if (config.noSubstituteNull) {
@@ -610,6 +619,13 @@ public:
            ->tryUnwrap(context, handle, (kj::Decay<U>*)nullptr, parentObject)
           .map([](auto&& value) -> kj::Maybe<U> { return kj::fwd<decltype(value)>(value); });
     } else {
+      // balus(N): TypeWrapper 是所有 XXXWrapper 的一个子类, 每个 XXXWrapper(比如
+      // 这里的 MaybeWrapper) 都会带上这个模板参数；因为可能需要递归地去 Unwrap: 通常
+      // API 用的是 TypeWrapper 去 wrap/unwrap, 它里面也是调用的各个基类的 wrap/unwrap
+      // (所以需要有一个 T* 参数作为重载区分), 在基类的 unwrap 方法中如果有类似于
+      // Maybe<T> 这些被包裹了多层的值的话, 首先需要 unwrap 外层的 Maybe, 然后再 unwrap
+      // 内层的 T, 这个时候就需要 TypeWrapper 这个大合集了，通过 T* 再去找到重载的 unwrap
+      // 函数
       return static_cast<TypeWrapper*>(this)
           ->tryUnwrap(context, handle, (kj::Decay<U>*)nullptr, parentObject);
     }
@@ -628,6 +644,7 @@ template <typename... T>
 constexpr bool isOneOf<kj::OneOf<T...>> = true;
 // TODO(cleanup): Move to kj/one-of.h?
 
+// balus(N): 这个类对我来说有点复杂, 后面再看详细内容吧
 template <typename TypeWrapper>
 class OneOfWrapper {
   // TypeWrapper mixin for variants.
@@ -636,6 +653,7 @@ public:
   template <typename... U> static kj::String getName(kj::OneOf<U...>*) {
     const auto getNameStr = [](auto u) {
       if constexpr (kj::isSameType<const std::type_info&, decltype(TypeWrapper::getName(u))>()) {
+        // balus(T): 去了解一下 C++ 的 demangle
         return typeName(TypeWrapper::getName(u));
       } else {
         return kj::str(TypeWrapper::getName(u));
@@ -661,6 +679,7 @@ public:
       v8::Local<v8::Context> context, kj::Maybe<v8::Local<v8::Object>> creator,
       kj::OneOf<U...> value) {
     v8::Local<v8::Value> result;
+    // balus(N): fold expression 玩得很 6
     if (!(wrapHelper<U>(context, creator, value, result) || ...)) {
       result = v8::Undefined(context->GetIsolate());
     }

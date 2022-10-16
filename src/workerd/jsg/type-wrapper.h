@@ -496,6 +496,7 @@ public:
 
     using V = kj::Decay<U>;
 
+    // balus(Q): 什么时候会出现前两种情况？
     if constexpr(kj::isSameType<V, Varargs>()) {
       return Varargs(parameterIndex, args);
     } else if constexpr(isValueLessParameter<Self, V>) {
@@ -514,6 +515,7 @@ public:
         }
       }
 
+      // balus(Q): args[parameterIndex] 会不会越界，如果越界的话会发生什么？
       // If we get here, we're either unwrapping into an optional or unimplemented parameter, in
       // which cases we're fine with nonexistent arguments implying `undefined`, or we have an
       // argument at this parameter index.
