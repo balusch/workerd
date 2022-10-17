@@ -151,6 +151,10 @@ void Wrappable::attachWrapper(v8::Isolate* isolate,
 
   tracer.addWrapper({}, *this);
 
+  // balus(T): 对 embedder tracing 还不了解, 后面得看看相关的内容
+  // 参考 https://v8.dev/docs/trace, 这个还可以用于控制台 debug?
+  // balus(Q): 看这里的说法, 如果某个 Object 的 InternalFields 0 号位数据不为
+  // nullptr, 那么 V8 就会跟踪该对象?
   // Set up internal fields for a newly-allocated object. V8 apparently decides that embedder
   // tracing is necessary if internal field 0 is non-null, so we set it only if we want tracing.
   // Meanwhile, we use field 1 to be the pointer to ourselves used for API glue.

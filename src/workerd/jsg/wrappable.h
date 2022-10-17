@@ -36,6 +36,8 @@ public:
     other.lastMarked = 0;
   }
   TraceableHandle& operator=(TraceableHandle&& other) {
+    // balus(Q): 为什么这个 static_cast, 是因为 v8::Global 是 move-only 的?
+    // 所以这里是把基类部分的数据先给 std::move 过去?
     static_cast<v8::Global<v8::Data>&>(*this) = kj::mv(other);
     // Since we don't know if `other.lastMarked` is current, we have to assume `other.tracedRef` is
     // invalid and not touch it. Setting `lastMarked` to zero ensures it'll be recreated if needed.

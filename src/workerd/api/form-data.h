@@ -76,6 +76,8 @@ public:
   void set(kj::String name, kj::OneOf<jsg::Ref<File>, jsg::Ref<Blob>, kj::String> value,
            jsg::Optional<kj::String> filename);
 
+  // balus(T): 了解一下 iterator 的实现, 似乎不是直接返回一个 JavaScript array?
+  // 而是 lazy load?
   JSG_ITERATOR(EntryIterator, entries,
                 EntryIteratorType,
                 IteratorState,
@@ -90,6 +92,9 @@ public:
                 IteratorState,
                 iteratorNext<ValueIteratorType>);
 
+  // balus(Q): 这种 Optional 之后还接非 Optional 参数的情况怎么解析呢?
+  // 应该是每个参数都有其固定的位置, 比如 func(a, b, c), 其中 b 和 c 是可选参数,
+  // 但是 c 在 b 之后, 所以如果想要设置 c, 那么 b 肯定也要设置, 即使是 undefined
   void forEach(
       jsg::Lock& js,
       jsg::V8Ref<v8::Function> callback,
