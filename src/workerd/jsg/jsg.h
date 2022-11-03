@@ -989,6 +989,7 @@ class Ref {
 
 public:
   Ref(decltype(nullptr)): strong(false) {}
+  // balus(Q): 为啥一上来 strong 就是 true 而不是根据 other 进行判断?
   Ref(Ref&& other): inner(kj::mv(other.inner)), strong(true) {
     if (other.strong) {
       other.strong = false;
@@ -996,6 +997,7 @@ public:
       inner->addStrongRef();
     }
   }
+  // balus(Q): 这里直接 strong 是因为 kj::Own 是独占语义的么?
   explicit Ref(kj::Own<T> innerParam): inner(kj::mv(innerParam)), strong(true) {
     // Upgrade a KJ allocation to a Ref. This is useful if you want to allocate the object outside
     // the isolate lock and then bring it in later. The object must be allocated with
@@ -1066,6 +1068,8 @@ private:
   // This field does NOT move when the Ref moves, because it's a property of the specific Ref
   // location.
 
+  // balus(N): 看 strong 的注释, 似乎 jsg::Ref 本身就意味着强引用, 所以前面都将其置为 true
+  // 那么什么时候 jsg::Ref 会变 weak 呢?
   bool strong;
   // True if the ref is currently counted in the target's strong refcount.
 
