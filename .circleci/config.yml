@@ -1,0 +1,56 @@
+version: 2.1
+executors:
+  linux-executor:
+    machine:
+      image: ubuntu-2204:2022.10.2
+    resource_class: large
+  macos-executor: 
+    macos:
+      xcode: "14.2.0"
+
+commands:
+  linux-setup-bazel:
+    description: Setup the Bazel build system
+    steps:
+      - run:
+          name: Add Bazel Apt repository
+          command: |
+            sudo apt install curl gnupg gcc llvm clang libc++-dev libstdc++6 libc++abi-dev
+            curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+            sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
+            echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+      - run:
+          name: Install Bazel from Apt
+          command: sudo apt update && sudo apt install bazel=5.3.0
+  macos-setup-bazel:
+    description: Setup the Bazel build system
+    steps:
+      - run:
+          name: Install Bazel
+          command: |
+            brew install curl
+            curl -fLO https://releases.bazel.build/5.3.0/release/bazel-5.3.0-darwin-x86_64
+            chmod +x bazel-5.3.0-darwin-x86_64
+            sudo mv bazel-5.3.0-darwin-x86_64 /usr/local/bin/bazel
+
+jobs:
+  build-linux:
+    executor: linux-executor
+    steps:
+      - linux-setup-bazel
+      - checkout
+      - run: bazel build -c opt //src/workerd/server:workerd
+  build-macos:
+    executor: macos-executor
+    steps:
+      - macos-setup-bazel
+      - checkout
+      - run: bazel build -c opt //src/workerd/server:workerd
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build-linux
+      - build-macos
+
