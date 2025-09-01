@@ -218,12 +218,15 @@ void ActorSqlite::onCriticalError(
 }
 
 void ActorSqlite::onWrite() {
+  KJ_LOG(INFO, "onWrite called");
   requireNotBroken();
   if (currentTxn.is<NoTxn>()) {
+    KJ_LOG(INFO, "Creating implicit transaction");
     auto txn = kj::heap<ImplicitTxn>(*this);
 
     commitTasks.add(outputGate.lockWhile(
         kj::evalLater([this, txn = kj::mv(txn)]() mutable -> kj::Promise<void> {
+      KJ_LOG(INFO, "Committing implicit transaction");
       // Don't commit if shutdown() has been called.
       requireNotBroken();
 
