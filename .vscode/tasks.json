@@ -45,6 +45,10 @@
           "//src/workerd/server:workerd"
         ]
       },
+      "linux": {
+        // On Linux, we can use the default spawn strategy.
+        "args": ["build", "-c", "dbg", "--linkopt='-lc++'", "--linkopt='-lm'", "--host_linkopt='-lc++'", "--host_linkopt='-lm'", "//src/workerd/server:workerd"]
+      },
       "group": {
         "kind": "build",
         "isDefault": true

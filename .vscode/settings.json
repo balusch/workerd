@@ -25,5 +25,11 @@
     "command": ["just", "_rust-analyzer"],
     "progressLabel": "generating rust analyzer config",
     "filesToWatch": ["BUILD.bazel"]
+  },
+  "files.associations": {
+    "atomic": "cpp",
+    "condition_variable": "cpp",
+    "future": "cpp",
+    "valarray": "cpp"
   }
 }
