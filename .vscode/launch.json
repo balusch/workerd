@@ -32,7 +32,7 @@
         "type": "cppvsdbg",
         "request": "launch"
       },
-      "args": ["serve", "${input:workerdConfig}"],
+      "args": ["serve", "${input:workerdConfig}", "--verbose"],
       "stopAtEntry": false,
       "externalConsole": false
     },
